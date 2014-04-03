@@ -15,6 +15,11 @@ static void
 after_read(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf)
 {
     fprintf(stderr, "%s: handle@%p\n", __func__, handle);
+    int i;
+    char *pstr = buf->base;
+    for(i=0; i<nread; i++)
+      fputc(pstr[i], stderr);
+    fputc('\n', stderr);
 }
 
 void on_new_connection(uv_stream_t *server, int status) 
@@ -24,10 +29,9 @@ void on_new_connection(uv_stream_t *server, int status)
         return;
     }
     uv_tcp_t *client = (uv_tcp_t*) malloc(sizeof(uv_tcp_t));
-    fprintf(stderr, "%s:*server@%p client@%p\n", __func__, server, client);
     uv_tcp_init(loop, client);
     if (uv_accept(server, (uv_stream_t*) client) == 0) {
-        fprintf(stderr, "%s:+server@%p client@%p\n", __func__, server, client);
+        fprintf(stderr, "%s: server@%p client@%p\n", __func__, server, client);
         uv_read_start((uv_stream_t*) client, buff_alloc, after_read);
     }
     else {

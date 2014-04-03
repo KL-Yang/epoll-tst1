@@ -1,5 +1,13 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
+
 project(rfs_client)
 
+#setup my own find module from internet!
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+find_package(Glib REQUIRED)
+
+include_directories(${Glib_INCLUDE_DIRS})
+set(LIBS ${LIBS} ${Glib_LIBRARIES})
+
 add_executable(rfs_client main.c)
-target_link_libraries (rfs_client uv)
+target_link_libraries (rfs_client ${LIBS})
