@@ -5,9 +5,10 @@ project(rfs_client)
 #setup my own find module from internet!
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 find_package(Glib REQUIRED)
+find_package(Libsoup REQUIRED)
 
-include_directories(${Glib_INCLUDE_DIRS})
-set(LIBS ${LIBS} ${Glib_LIBRARIES})
+include_directories(${GLIB_INCLUDE_DIRS} ${LIBSOUP_INCLUDE_DIRS})
+set(LIBS ${LIBS} ${GLIB_LIBRARIES} ${LIBSOUP_LIBRARIES})
 
-add_executable(rfs_client main.c)
+add_executable(rfs_client main.c rfs_open.c)
 target_link_libraries (rfs_client ${LIBS})
