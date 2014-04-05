@@ -5,6 +5,8 @@ project (rfs)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 find_package(Glib REQUIRED)
 
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -W -Wall")
+
 add_subdirectory(server)
 add_subdirectory(client)
 add_subdirectory(common)

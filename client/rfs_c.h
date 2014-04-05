@@ -9,7 +9,8 @@ typedef struct {
 } rfs_t;    //local
 
 int64_t rfs_open(const char *pathname, int flags);
-int rfs_close(int64_t rfh);
+int64_t rfs_write(int64_t rfd, const void *buf, int64_t count);
+int     rfs_close(int64_t rfh);
 ////////////////////////
 
 int rfs_socket_connect(const char *host, int port);

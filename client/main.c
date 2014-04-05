@@ -7,7 +7,7 @@ int main()
     char *uri="rfs://kyang@pt001:2048/home/kyang/test.dat";
 
     fd = rfs_open(uri, O_CREAT);
-    rfs_write(fd, buf, strlen(buf), 0);
+    rfs_write(fd, buf, strlen(buf));
     rfs_close(fd);
 
     return 0;
