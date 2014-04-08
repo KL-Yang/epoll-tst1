@@ -64,6 +64,7 @@ svr_ctx_t * rfss_new_context();
 void server_dispatch(void *data, void *user_data);
 
 lfd_ctx_t * svr_rfs_open(rfs_open_in_t *in, rfs_open_ou_t *ou);
+lfd_ctx_t * svr_rfs_close(rfs_close_in_t *in, rfs_close_ou_t *ou);
 
 /*
 
