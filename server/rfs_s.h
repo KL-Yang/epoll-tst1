@@ -27,11 +27,8 @@ typedef struct {
  * */
 typedef struct {
 
-    int                 socket;
-
     rfs_cmd_t          *cmd;            /* on command received, append to lfd_ctx queue */
     GThreadPool        *cmd_pool;       /* thread pool to handle commands */
-    int                 cqd;            /* command queue depth */
 
     pthread_spinlock_t  lock;
     GList              *lfd_list;       /* local file associate with this socket! */
@@ -39,6 +36,8 @@ typedef struct {
     GQueue             *ret_que;        /* return queue, when lfd finished, append to this queue */
     rfs_cmd_t          *ret;
     int                 rqd;            /* return queue depth */
+
+    uv_loop_t          *loop;
 
 } svr_ctx_t;
 

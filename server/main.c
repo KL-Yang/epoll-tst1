@@ -31,7 +31,6 @@ after_read(uv_stream_t* handle, ssize_t nread,
             //svr_validate_command();
             g_thread_pool_push(ctx->cmd_pool, cmd, NULL);
             ctx->cmd = calloc(1, sizeof(phead_t));
-            ctx->cqd++;
         }
     } else {
         if((cmd->offset+=nread)==sizeof(phead_t)) {
@@ -50,7 +49,7 @@ void on_new_connection(uv_stream_t *server, int status)
         return;
     }
     client = (uv_tcp_t*) malloc(sizeof(uv_tcp_t));
-    client->data = rfss_new_context();
+    client->data = rfss_new_context(loop);
 
     uv_tcp_init(loop, client);
     if (uv_accept(server, (uv_stream_t*) client) == 0) {
