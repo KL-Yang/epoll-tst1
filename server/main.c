@@ -49,7 +49,7 @@ void on_new_connection(uv_stream_t *server, int status)
         return;
     }
     client = (uv_tcp_t*) malloc(sizeof(uv_tcp_t));
-    client->data = rfss_new_context(loop);
+    client->data = rfss_new_context((uv_stream_t*)client);
 
     uv_tcp_init(loop, client);
     if (uv_accept(server, (uv_stream_t*) client) == 0) {

@@ -13,7 +13,6 @@
 //protocol command
 #define PCMD_MODE_DATA      (1u<<0)     //send/recv data, other wise head
 
-
 typedef struct {
     int32_t         flag;
     int32_t        _reserved;
@@ -21,6 +20,12 @@ typedef struct {
     phead_t         head;       //function id
     void           *data;
 } rfs_cmd_t;
+
+typedef struct {
+    uv_write_t      req;
+    uv_buf_t        buf[2];
+    rfs_cmd_t      *cmd;
+} rfs_ret_t;
 
 /**
  * create on connect accept, destroy on connection lost
@@ -37,7 +42,7 @@ typedef struct {
     rfs_cmd_t          *ret;
     int                 rqd;            /* return queue depth */
 
-    uv_loop_t          *loop;
+    uv_stream_t        *client;
 
 } svr_ctx_t;
 
@@ -59,7 +64,7 @@ typedef struct {
 
 } lfd_ctx_t;
 
-svr_ctx_t * rfss_new_context();
+svr_ctx_t * rfss_new_context(uv_stream_t *client);
 void server_dispatch(void *data, void *user_data);
 
 lfd_ctx_t * svr_rfs_open(rfs_open_in_t *in, void **ppou);
