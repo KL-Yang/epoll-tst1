@@ -15,10 +15,11 @@
 
 
 typedef struct {
-    int             flag;
-    size_t          offset;
+    int32_t         flag;
+    int32_t        _reserved;
+    int64_t         offset;
     phead_t         head;       //function id
-    void           *data, *arg, *ret;
+    void           *data;
 } rfs_cmd_t;
 
 /**
@@ -29,7 +30,7 @@ typedef struct {
     int                 socket;
 
     rfs_cmd_t          *cmd;            /* on command received, append to lfd_ctx queue */
-    GQueue             *cmd_que;
+    GThreadPool        *cmd_pool;       /* thread pool to handle commands */
     int                 cqd;            /* command queue depth */
 
     pthread_spinlock_t  lock;
@@ -38,16 +39,8 @@ typedef struct {
     GQueue             *ret_que;        /* return queue, when lfd finished, append to this queue */
     rfs_cmd_t          *ret;
     int                 rqd;            /* return queue depth */
-                     
-    struct event       *ev_sr;          /* event of socket read */
-    struct event       *ev_sw;          /* event of socket write */
-    
-    rfs_cmd_t          *act;            /* file action now executing */
-    struct event       *ev_fr;          /* file read */
-    struct event       *ev_fw;          /* file write */
-    struct event_base  *base;
 
-} server_ctx_t;
+} svr_ctx_t;
 
 /**
  * the client side fd should be a pointer to lfd_ctx_t struct!
@@ -63,10 +56,14 @@ typedef struct {
     int             magic;
     int             flag;
     int             sequence;
+    //add time stamp of last active command
 
 } lfd_ctx_t;
 
-server_ctx_t * rfss_new_context();
+svr_ctx_t * rfss_new_context();
+void server_dispatch(void *data, void *user_data);
+
+lfd_ctx_t * svr_rfs_open(rfs_open_in_t *in, rfs_open_ou_t *ou);
 
 /*
 

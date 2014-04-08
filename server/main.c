@@ -6,7 +6,7 @@ static void
 buff_alloc(uv_handle_t* handle, size_t __attribute__((unused)) suggested_size, 
            uv_buf_t* buf) 
 {
-    rfs_cmd_t *cmd = ((server_ctx_t*)handle->data)->cmd;
+    rfs_cmd_t *cmd = ((svr_ctx_t*)handle->data)->cmd;
     fprintf(stderr, "%s: handle@%p\n", __func__, handle);
     if(cmd->flag & PCMD_MODE_DATA) {
         buf->len = cmd->head.size - cmd->offset;
@@ -18,17 +18,18 @@ buff_alloc(uv_handle_t* handle, size_t __attribute__((unused)) suggested_size,
 }
 
 static void 
-after_read(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf)
+after_read(uv_stream_t* handle, ssize_t nread, 
+           const __attribute__((unused)) uv_buf_t* buf)
 {
-    server_ctx_t *ctx = handle->data; 
+    svr_ctx_t *ctx = handle->data; 
     rfs_cmd_t *cmd = ctx->cmd;
-    fprintf(stderr, "%s: handle@%p\n", __func__, handle);
+    fprintf(stderr, "%s: handle@%p nread=%ld\n", __func__, handle, nread);
     if(cmd->flag & PCMD_MODE_DATA) {
         if((cmd->offset+=nread)==cmd->head.size) {
-            //command received completely, move to queue
             cmd->flag = 0;
             cmd->offset = 0;
-            g_queue_push_tail(ctx->cmd_que, cmd);
+            //svr_validate_command();
+            g_thread_pool_push(ctx->cmd_pool, cmd, NULL);
             ctx->cmd = calloc(1, sizeof(phead_t));
             ctx->cqd++;
         }
