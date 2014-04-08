@@ -10,8 +10,7 @@ void server_dispatch(void *data, void *user_data)
     switch(cmd->head.func_id) {
       case RFS_OPEN:
         fprintf(stderr, "%s: RFS_OPEN\n", __func__);
-        ret = calloc(1, sizeof(rfs_open_ou_t));
-        lfd = svr_rfs_open(cmd->data, ret);
+        lfd = svr_rfs_open(cmd->data, &ret);
         pthread_spin_lock(&ctx->lock);
         ctx->lfd_list = g_list_append(ctx->lfd_list, lfd);
         pthread_spin_unlock(&ctx->lock);
@@ -24,14 +23,12 @@ void server_dispatch(void *data, void *user_data)
 
       case RFS_WRITE:
         fprintf(stderr, "%s: RFS_WRITE\n", __func__);
-        ret = calloc(1, sizeof(rfs_write_ou_t));
-        svr_rfs_write(cmd->data, ret);
+        svr_rfs_write(cmd->data, &ret);
         break;
 
       case RFS_CLOSE:
         fprintf(stderr, "%s: RFS_CLOSE\n", __func__);
-        ret = calloc(1, sizeof(rfs_close_ou_t));
-        lfd = svr_rfs_close(cmd->data, ret);
+        lfd = svr_rfs_close(cmd->data, &ret);
         pthread_spin_lock(&ctx->lock);
         ctx->lfd_list = g_list_remove(ctx->lfd_list, lfd);
         pthread_spin_unlock(&ctx->lock);

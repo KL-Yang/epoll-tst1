@@ -63,11 +63,11 @@ typedef struct {
 svr_ctx_t * rfss_new_context();
 void server_dispatch(void *data, void *user_data);
 
-lfd_ctx_t * svr_rfs_open(rfs_open_in_t *in, rfs_open_ou_t *ou);
-lfd_ctx_t * svr_rfs_close(rfs_close_in_t *in, rfs_close_ou_t *ou);
+lfd_ctx_t * svr_rfs_open(rfs_open_in_t *in, void **ppou);
+lfd_ctx_t * svr_rfs_close(rfs_close_in_t *in, void **ppou);
 
-void svr_rfs_read(rfs_read_in_t *in, void *ppou);
-void svr_rfs_write(rfs_write_in_t *in, rfs_write_ou_t *ou);
+void svr_rfs_read(rfs_read_in_t *in, void **ppou);
+void svr_rfs_write(rfs_write_in_t *in, void **ppou);
 /*
 
 rfs_ctx_t * rfs_ctx_create(struct event_base *base, evutil_socket_t fd);
