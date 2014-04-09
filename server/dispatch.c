@@ -1,12 +1,15 @@
 #include "rfs_s.h"
 
 static void after_write(uv_write_t* req, int status) {
-    ABORT_ON(req != NULL, "NULL handle!");
+    fprintf(stderr, "%s: status=%d\n", __func__, status);
+    ABORT_ON(req == NULL, "NULL handle!");
     ABORT_ON(status, "uv_write error: %s\n", uv_strerror(status));
     rfs_ret_t *ret = (rfs_ret_t*)req;
+    /*
     free(ret->cmd->data);
     free(ret->cmd);
     free(ret);
+    */
 }
 
 
@@ -16,6 +19,7 @@ void server_dispatch(void *data, void *user_data)
     lfd_ctx_t *lfd;
     rfs_cmd_t *cmd = (rfs_cmd_t*)data;
     svr_ctx_t *ctx = (svr_ctx_t*)user_data;
+    fprintf(stderr, "%s: cmd@%p\n", __func__, cmd);
 
     switch(cmd->head.func_id) {
       case RFS_OPEN:
@@ -61,10 +65,11 @@ void server_dispatch(void *data, void *user_data)
     ret->buf[0].len = sizeof(phead_t);
     ret->buf[1].base = cmd->data;
     ret->buf[1].len = cmd->head.size;
+    fprintf(stderr, "RET: buf0@%p len=%4d buf1@%p len=%5d client@%p\n", ret->buf[0].base, 
+            (int)ret->buf[0].len, ret->buf[1].base, (int)ret->buf[1].len, ctx->client);
 
     pthread_spin_lock(&ctx->lock);
-    uv_write(&ret->req, ctx->client, ret->buf, 2, after_write);
-    g_queue_push_tail(ctx->ret_que, cmd);
-    ctx->rqd++;
+    //uv_write(&ret->req[0], ctx->client, &ret->buf[0], 1, after_write);
+    //uv_write(&ret->req[1], ctx->client, &ret->buf[1], 1, after_write);
     pthread_spin_unlock(&ctx->lock);
 }

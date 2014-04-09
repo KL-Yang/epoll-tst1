@@ -22,7 +22,7 @@ typedef struct {
 } rfs_cmd_t;
 
 typedef struct {
-    uv_write_t      req;
+    uv_write_t      req[2];
     uv_buf_t        buf[2];
     rfs_cmd_t      *cmd;
 } rfs_ret_t;
@@ -32,19 +32,33 @@ typedef struct {
  * */
 typedef struct {
 
-    rfs_cmd_t          *cmd;            /* on command received, append to lfd_ctx queue */
+    uv_loop_t          *loop;
+    int                 bcon;
+
+    rfs_cmd_t          *cmd;            /* TODO: move to cln_ctx_t on command received, append to lfd_ctx queue */
     GThreadPool        *cmd_pool;       /* thread pool to handle commands */
 
     pthread_spinlock_t  lock;
-    GList              *lfd_list;       /* local file associate with this socket! */
+    GList              *cln_list;
+    GList              *lfd_list;       /* TODO: move to cln_ctx_t local file associate with this socket! */
                      
     GQueue             *ret_que;        /* return queue, when lfd finished, append to this queue */
-    rfs_cmd_t          *ret;
+    //rfs_cmd_t          *ret;
     int                 rqd;            /* return queue depth */
 
-    uv_stream_t        *client;
+    uv_stream_t        *client;         /* TODO move to cln_ctx_t */
+    uv_stream_t        *trigger;
 
 } svr_ctx_t;
+
+typedef struct {
+
+    svr_ctx_t          *svr;
+    rfs_cmd_t          *cmd;
+    GList              *lfd_list;
+    uv_stream_t        *client;
+
+} cln_ctx_t;
 
 /**
  * the client side fd should be a pointer to lfd_ctx_t struct!
@@ -64,6 +78,8 @@ typedef struct {
 
 } lfd_ctx_t;
 
+void beacon_connection(uv_stream_t *server, int status);
+
 svr_ctx_t * rfss_new_context(uv_stream_t *client);
 void server_dispatch(void *data, void *user_data);
 
@@ -72,21 +88,3 @@ lfd_ctx_t * svr_rfs_close(rfs_close_in_t *in, void **ppou);
 
 void svr_rfs_read(rfs_read_in_t *in, void **ppou);
 void svr_rfs_write(rfs_write_in_t *in, void **ppou);
-/*
-
-rfs_ctx_t * rfs_ctx_create(struct event_base *base, evutil_socket_t fd);
-
-int do_cmd_head(evutil_socket_t socket, rfs_cmd_t *cmd, char type);
-int do_cmd_data(evutil_socket_t socket, rfs_cmd_t *cmd, char type);
-void do_accept(evutil_socket_t listener, short event, void *arg);
-void rfs_ctx_recv(evutil_socket_t fd, short events, void *arg);
-void rfs_ctx_send(evutil_socket_t fd, short events, void *arg);
-void rfs_svr_open(rfs_ctx_t *ctx, rfs_cmd_t *cmd);
-void rfs_lfd_read(evutil_socket_t fd, short events, void *arg);
-void rfs_lfd_write(evutil_socket_t fd, short events, void *arg);
-void rfs_verify_cmd(rfs_ctx_t *ctx, rfs_cmd_t *cmd);
-void rfs_svr_read_attach(rfs_ctx_t *ctx, rfs_cmd_t *cmd);
-void rfs_svr_write_attach(rfs_ctx_t *ctx, rfs_cmd_t *cmd);
-void rfs_svr_mark_close(rfs_ctx_t *ctx, rfs_cmd_t *cmd);
-void rfs_svr_send_attach(rfs_ctx_t *ctx, rfs_cmd_t *cmd);
-*/
