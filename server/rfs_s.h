@@ -13,10 +13,13 @@
 //protocol command
 #define PCMD_MODE_DATA      (1u<<0)     //send/recv data, other wise head
 
+typedef struct cln_ctx_s cln_ctx_t;
+
 typedef struct {
     int32_t         flag;
     int32_t        _reserved;
     int64_t         offset;
+    cln_ctx_t      *ctx;
     phead_t         head;       //function id
     void           *data;
 } rfs_cmd_t;
@@ -33,29 +36,28 @@ typedef struct {
 typedef struct {
 
     uv_loop_t          *loop;
-    int                 bcon;
-
-    rfs_cmd_t          *cmd;            /* TODO: move to cln_ctx_t on command received, append to lfd_ctx queue */
-    GThreadPool        *cmd_pool;       /* thread pool to handle commands */
+    int                 ping;           /* fd that notify completion of command */
 
     pthread_spinlock_t  lock;
+    GThreadPool        *cmd_pool;       /* thread pool to handle commands */
     GList              *cln_list;
-    GList              *lfd_list;       /* TODO: move to cln_ctx_t local file associate with this socket! */
+    GList              *lfd_list;       
                      
-    GQueue             *ret_que;        /* return queue, when lfd finished, append to this queue */
-    //rfs_cmd_t          *ret;
-    int                 rqd;            /* return queue depth */
-
-    uv_stream_t        *client;         /* TODO move to cln_ctx_t */
-    uv_stream_t        *trigger;
+    uv_stream_t        *notify;
+    sem_t               notify_sem;
+    pthread_t           notify_thread;
 
 } svr_ctx_t;
 
-typedef struct {
+typedef struct cln_ctx_s {
 
+    pthread_spinlock_t  lock;
     svr_ctx_t          *svr;
     rfs_cmd_t          *cmd;
-    GList              *lfd_list;
+
+    GQueue             *ret_que;
+    int                 rqd;
+
     uv_stream_t        *client;
 
 } cln_ctx_t;
@@ -78,13 +80,14 @@ typedef struct {
 
 } lfd_ctx_t;
 
-void beacon_connection(uv_stream_t *server, int status);
-
-svr_ctx_t * rfss_new_context(uv_stream_t *client);
+void after_notify(uv_stream_t __attribute__ ((unused)) *handle, ssize_t nread, const uv_buf_t* buf);
 void server_dispatch(void *data, void *user_data);
 
+cln_ctx_t * svr_new_client(svr_ctx_t *svr, uv_tcp_t *client);
 lfd_ctx_t * svr_rfs_open(rfs_open_in_t *in, void **ppou);
 lfd_ctx_t * svr_rfs_close(rfs_close_in_t *in, void **ppou);
-
 void svr_rfs_read(rfs_read_in_t *in, void **ppou);
 void svr_rfs_write(rfs_write_in_t *in, void **ppou);
+
+void svr_notify_setup(uv_stream_t *server, int status);
+void * svr_notify_try_connect(void *arg);
