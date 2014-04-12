@@ -3,14 +3,10 @@
 void * svr_notify_try_connect(void *arg)
 {
     svr_ctx_t *svr = arg;
-    fprintf(stderr, "%s: waiting for semaphore\n", __func__);
-    //while(sem_wait(&svr->notify_sem)!=0 && errno==EINTR)
-    //  continue;
     svr->ping = rfs_socket_connect("localhost", RFS_BEACON_PORT);
     fprintf(stderr, "%s: svr->ping=%d\n", __func__, svr->ping);
     return NULL;
 }
-
 
 static void
 after_notify_write(uv_write_t* req, int status) 

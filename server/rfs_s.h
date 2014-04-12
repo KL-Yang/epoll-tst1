@@ -91,3 +91,5 @@ void svr_rfs_write(rfs_write_in_t *in, void **ppou);
 
 void svr_notify_setup(uv_stream_t *server, int status);
 void * svr_notify_try_connect(void *arg);
+svr_ctx_t * svr_ctx_new();
+void svr_ctx_free(svr_ctx_t *svr);

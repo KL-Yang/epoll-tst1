@@ -8,5 +8,6 @@ cln_ctx_t * svr_new_client(svr_ctx_t *svr, uv_tcp_t *client)
     cln->cmd->ctx = cln;
     cln->client = (uv_stream_t*)client;
     cln->ret_que = g_queue_new();
+    pthread_spin_init(&cln->lock, PTHREAD_PROCESS_PRIVATE);
     return cln;
 }

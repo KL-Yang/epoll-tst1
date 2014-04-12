@@ -47,11 +47,13 @@ void server_dispatch(void *data, void *user_data)
     free(cmd->data);
     cmd->data = dout;
 
+    pthread_spin_lock(&cln->lock);
     g_queue_push_tail(cln->ret_que, cmd);
     cln->rqd++;
+    pthread_spin_unlock(&cln->lock);
 
     //ping the notify socket!
-    fprintf(stderr, "%s: ping the socket[%d]!\n", __func__, svr->ping);
+    fprintf(stderr, "%s: ping the socket[%d]! @%p\n", __func__, svr->ping, cln);
     if(write(svr->ping, &cln, sizeof(void*))!=sizeof(void*)) 
       ABORT_ME("Failed to notify a command has completed!\n");
     fprintf(stderr, "%s: done the ping[%d]!\n", __func__, svr->ping);

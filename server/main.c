@@ -21,7 +21,7 @@ buff_alloc(uv_handle_t* handle, size_t __attribute__((unused)) suggested_size,
         buf->len = sizeof(phead_t) - cmd->offset;
         buf->base = (void*)&cmd->head + cmd->offset;
     }
-    fprintf(stderr, "%s: base@%p len=%5d\n", __func__, buf->base, (int)buf->len);
+    //fprintf(stderr, "%s: base@%p len=%5d\n", __func__, buf->base, (int)buf->len);
 }
 
 static void 
@@ -42,6 +42,7 @@ after_read(uv_stream_t* handle, ssize_t nread,
             cmd->flag = 0;
             cmd->offset = 0;
             //svr_validate_command();
+            fprintf(stderr, "%s: cmd->ctx@%p\n", __func__, cmd->ctx);
             g_thread_pool_push(svr->cmd_pool, cmd, NULL);
             cln->cmd = calloc(1, sizeof(phead_t));
             cln->cmd->ctx = cln;
@@ -52,7 +53,7 @@ after_read(uv_stream_t* handle, ssize_t nread,
             cmd->flag |= PCMD_MODE_DATA;
             cmd->data  = malloc(cmd->head.size);
             cmd->offset = 0;
-            fprintf(stderr, "   head->protocol=%4s\n", cmd->head.protocol);
+            fprintf(stderr, "%s:   head->protocol=%4s\n", __func__, cmd->head.protocol);
         }
     }
 }
@@ -64,8 +65,6 @@ static void server_connection(uv_stream_t *server, int status)
     svr_ctx_t *svr;
     cln_ctx_t *cln; 
     svr = server->data;
-
-    fprintf(stderr, "%s: after notify initiated!\n", __func__);
 
     uv_tcp_t *client = (uv_tcp_t*) malloc(sizeof(uv_tcp_t));
     cln = svr_new_client(svr, client);
@@ -92,9 +91,7 @@ int main() {
     pthread_t notify_thread;
     struct sockaddr_in server_addr;
 
-    svr = calloc(1, sizeof(svr_ctx_t));
-    svr->loop = uv_loop_new();  //TODO: put into a svr_ctx_init function
-
+    svr = svr_ctx_new();
     /**
      * Create one hanle and one event only, used to setup the self
      * notificition system. Abort if cannot establish the connection,
@@ -124,20 +121,7 @@ int main() {
     /**
      * Start listen to external connection for real work!
      * */
-
-    sleep(10);
-    ABORT_ME("debug, seems working!\n");
-
-    /**
-     * other part of server initiation, move rfss_new_context here!
-     * */
-    pthread_spin_init(&svr->lock, PTHREAD_PROCESS_PRIVATE);
-    svr->cmd_pool = g_thread_pool_new(server_dispatch, svr, 2, TRUE, NULL);
-
-    /**
-     * listen as rfs server and setup client context
-     * */
-    server = calloc(1, sizeof(uv_tcp_t));
+    memset(server, 0, sizeof(uv_tcp_t));
     server->data = svr;
     uv_tcp_init(svr->loop, server);
     uv_ip4_addr("0.0.0.0", RFS_PORT, &server_addr);
@@ -151,9 +135,10 @@ int main() {
      * finished server context creation, start event loop
      * */
     r = uv_run(svr->loop, UV_RUN_DEFAULT);
-
+    uv_close((uv_handle_t*)svr->notify, NULL);
+    free(svr->notify);
+    svr_ctx_free(svr);
     free(server);
-    free(svr);
 
     return r;
 }
