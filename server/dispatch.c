@@ -3,11 +3,12 @@
 void server_dispatch(void *data, void *user_data)
 {
     void *dout; 
-    lfd_ctx_t *lfd;
     svr_ctx_t *svr = (svr_ctx_t*)user_data;
     rfs_cmd_t *cmd = (rfs_cmd_t*)data;
     cln_ctx_t *cln = cmd->ctx;
+
     fprintf(stderr, "%s: cmd@%p\n", __func__, cmd);
+    lfd_ctx_t *lfd;
 
     switch(cmd->head.func_id) {
       case RFS_OPEN:
@@ -47,14 +48,16 @@ void server_dispatch(void *data, void *user_data)
     free(cmd->data);
     cmd->data = dout;
 
+    struct epoll_event ret_ev;
+    ret_ev.data.ptr = cln;
+    ret_ev.events = EPOLLIN | EPOLLOUT | EPOLLET;
+
+    //start sending if not sending now!
     pthread_spin_lock(&cln->lock);
     g_queue_push_tail(cln->ret_que, cmd);
+    if(cln->rqd==0)
+      if(epoll_ctl(svr->efd, EPOLL_CTL_MOD, cln->socket, &ret_ev) ==-1) 
+        fprintf(stderr, "%s: faile to epoll_ctl! %s\n", __func__, strerror(errno));
     cln->rqd++;
     pthread_spin_unlock(&cln->lock);
-
-    //ping the notify socket!
-    fprintf(stderr, "%s: ping the socket[%d]! @%p\n", __func__, svr->ping, cln);
-    if(write(svr->ping, &cln, sizeof(void*))!=sizeof(void*)) 
-      ABORT_ME("Failed to notify a command has completed!\n");
-    fprintf(stderr, "%s: done the ping[%d]!\n", __func__, svr->ping);
 }

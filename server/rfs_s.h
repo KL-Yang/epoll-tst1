@@ -10,6 +10,20 @@
 #include <uv.h>
 #include <glib.h>
 
+#include <sys/epoll.h>
+#include <sys/types.h> 
+#include <sys/socket.h>
+#include <netinet/in.h>
+
+#define SVR_BACKLOG         10
+#define SVR_MAX_EVENT       16
+#define SVR_MAX_CLIENT      128
+
+//svr_socket() -> flag
+#define SVR_CLIENT          (1<<0)      //dummy 
+#define SVR_SERVER          (1<<0)
+#define SVR_NONBLOCK        (1<<1)
+
 //protocol command
 #define PCMD_MODE_DATA      (1u<<0)     //send/recv data, other wise head
 
@@ -33,10 +47,11 @@ typedef struct {
 /**
  * create on connect accept, destroy on connection lost
  * */
+#define SVR_CLIENT_QD   1
 typedef struct {
 
-    uv_loop_t          *loop;
-    int                 ping;           /* fd that notify completion of command */
+    int                 efd;            /* epoll fd */
+    int                 socket;         /* listening socket */
 
     pthread_spinlock_t  lock;
     GThreadPool        *cmd_pool;       /* thread pool to handle commands */
@@ -44,13 +59,15 @@ typedef struct {
     GList              *lfd_list;       
                      
     uv_stream_t        *notify;
-    sem_t               notify_sem;
-    pthread_t           notify_thread;
+    int                 cqd;
+    cln_ctx_t          *cln_ctx[SVR_CLIENT_QD];
+    struct epoll_event *event;
 
 } svr_ctx_t;
 
 typedef struct cln_ctx_s {
 
+    int                 socket;
     pthread_spinlock_t  lock;
     svr_ctx_t          *svr;
     rfs_cmd_t          *cmd;
@@ -58,7 +75,10 @@ typedef struct cln_ctx_s {
     GQueue             *ret_que;
     int                 rqd;
 
-    uv_stream_t        *client;
+    //uv_stream_t        *client;
+
+    uv_buf_t            ret[2];
+    uv_write_t          req[2];
 
 } cln_ctx_t;
 
@@ -76,6 +96,7 @@ typedef struct {
     int             magic;
     int             flag;
     int             sequence;
+    cln_ctx_t      *cln;
     //add time stamp of last active command
 
 } lfd_ctx_t;
@@ -83,7 +104,6 @@ typedef struct {
 void after_notify(uv_stream_t __attribute__ ((unused)) *handle, ssize_t nread, const uv_buf_t* buf);
 void server_dispatch(void *data, void *user_data);
 
-cln_ctx_t * svr_new_client(svr_ctx_t *svr, uv_tcp_t *client);
 lfd_ctx_t * svr_rfs_open(rfs_open_in_t *in, void **ppou);
 lfd_ctx_t * svr_rfs_close(rfs_close_in_t *in, void **ppou);
 void svr_rfs_read(rfs_read_in_t *in, void **ppou);
@@ -93,3 +113,13 @@ void svr_notify_setup(uv_stream_t *server, int status);
 void * svr_notify_try_connect(void *arg);
 svr_ctx_t * svr_ctx_new();
 void svr_ctx_free(svr_ctx_t *svr);
+
+
+cln_ctx_t * svr_new_client(int socket, svr_ctx_t *svr);
+
+int svr_socket(const char *host, int port, int flag);
+int svr_make_non_block(int fd);
+int svr_accept(svr_ctx_t *svr);
+int svr_inbound(cln_ctx_t *cln);
+int svr_outbound(cln_ctx_t *cln);
+
