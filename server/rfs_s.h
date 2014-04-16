@@ -52,17 +52,13 @@ typedef struct {
 
     int                 efd;            /* epoll fd */
     int                 socket;         /* listening socket */
+    struct epoll_event *event;
 
     pthread_spinlock_t  lock;
     GThreadPool        *cmd_pool;       /* thread pool to handle commands */
     GList              *cln_list;
-    GList              *lfd_list;       
+    GList              *lfd_list;       /* if client lost, lfd wait here for reconnection */
                      
-    uv_stream_t        *notify;
-    int                 cqd;
-    cln_ctx_t          *cln_ctx[SVR_CLIENT_QD];
-    struct epoll_event *event;
-
 } svr_ctx_t;
 
 typedef struct cln_ctx_s {
@@ -109,11 +105,10 @@ lfd_ctx_t * svr_rfs_close(rfs_close_in_t *in, void **ppou);
 void svr_rfs_read(rfs_read_in_t *in, void **ppou);
 void svr_rfs_write(rfs_write_in_t *in, void **ppou);
 
-void svr_notify_setup(uv_stream_t *server, int status);
-void * svr_notify_try_connect(void *arg);
-svr_ctx_t * svr_ctx_new();
-void svr_ctx_free(svr_ctx_t *svr);
 
+svr_ctx_t * svr_ctx_init(const char *host, int port, int nthread);
+void svr_run_loop(svr_ctx_t *svr);
+void svr_ctx_free(svr_ctx_t *svr);
 
 cln_ctx_t * svr_new_client(int socket, svr_ctx_t *svr);
 
