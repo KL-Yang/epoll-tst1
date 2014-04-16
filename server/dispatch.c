@@ -14,9 +14,11 @@ void server_dispatch(void *data, void *user_data)
       case RFS_OPEN:
         fprintf(stderr, "%s: RFS_OPEN\n", __func__);
         lfd = svr_rfs_open(cmd->data, &dout);
-        pthread_spin_lock(&svr->lock);
-        svr->lfd_list = g_list_append(svr->lfd_list, lfd);
-        pthread_spin_unlock(&svr->lock);
+        if(lfd!=NULL) {
+            pthread_spin_lock(&svr->lock);
+            svr->lfd_list = g_list_append(svr->lfd_list, lfd);
+            pthread_spin_unlock(&svr->lock);
+        }
         break;
 
       case RFS_READ:
