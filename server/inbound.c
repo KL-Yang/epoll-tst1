@@ -5,6 +5,7 @@ int svr_inbound(cln_ctx_t *cln)
     svr_ctx_t *svr = cln->svr;
     rfs_cmd_t *cmd = cln->cmd;
     void *buf; size_t num; ssize_t count;
+    fprintf(stderr, "%s\n", __func__);
 
     while(1) {
         if(cmd->flag & PCMD_MODE_DATA) {
@@ -21,17 +22,19 @@ int svr_inbound(cln_ctx_t *cln)
                 abort();
             }
             break;
-        } else if (num == 0) {
+        } else if (count == 0) {
             /* broke or closed socket, handle it here! */
+            perror("socket broken!");
+            abort();
             break;
         }
-        cmd->offset += num;
+        cmd->offset += count;
         if(cmd->flag & PCMD_MODE_DATA) {
             if(cmd->offset == cmd->head.size) {
                 cmd->flag = 0;
                 cmd->offset = 0;
                 g_thread_pool_push(svr->cmd_pool, cmd, NULL);
-                cmd = calloc(1, sizeof(phead_t));
+                cmd = calloc(1, sizeof(rfs_cmd_t));
                 cmd->ctx = cln;
                 cln->cmd = cmd;
             }
@@ -40,7 +43,16 @@ int svr_inbound(cln_ctx_t *cln)
                 cmd->flag |= PCMD_MODE_DATA;
                 cmd->data  = malloc(cmd->head.size);
                 cmd->offset = 0;
-                fprintf(stderr, "%s:   head->protocol=%4s\n", __func__, cmd->head.protocol);
+                switch(cmd->head.func_id) {
+                  case RFS_OPEN:
+                    fprintf(stderr, "%s:   RFS_OPEN()\n", __func__);
+                    break;
+                  case RFS_CLOSE:
+                    fprintf(stderr, "%s:   RFS_OPEN()\n", __func__);
+                    break;
+                  default:
+                    abort();
+                }
             }
         }
     }

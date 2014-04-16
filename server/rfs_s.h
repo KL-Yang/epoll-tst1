@@ -68,13 +68,12 @@ typedef struct cln_ctx_s {
     svr_ctx_t          *svr;
     rfs_cmd_t          *cmd;
 
+    rfs_cmd_t          *ret;
     GQueue             *ret_que;
     int                 rqd;
 
-    //uv_stream_t        *client;
-
-    uv_buf_t            ret[2];
-    uv_write_t          req[2];
+    //uv_buf_t            ret[2];
+    //uv_write_t          req[2];
 
 } cln_ctx_t;
 
