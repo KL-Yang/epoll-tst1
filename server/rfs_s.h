@@ -38,12 +38,6 @@ typedef struct {
     void           *data;
 } rfs_cmd_t;
 
-typedef struct {
-    uv_write_t      req[2];
-    uv_buf_t        buf[2];
-    rfs_cmd_t      *cmd;
-} rfs_ret_t;
-
 /**
  * create on connect accept, destroy on connection lost
  * */
@@ -71,9 +65,6 @@ typedef struct cln_ctx_s {
     rfs_cmd_t          *ret;
     GQueue             *ret_que;
     int                 rqd;
-
-    //uv_buf_t            ret[2];
-    //uv_write_t          req[2];
 
 } cln_ctx_t;
 

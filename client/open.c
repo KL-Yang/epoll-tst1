@@ -9,7 +9,7 @@ rfs_protocol_new_head(int func_id, rfs_t *rfs)
 { 
     phead_t *h;
     h = calloc(1, sizeof(phead_t));
-    memcpy(h->protocol, "RFS0", 4*sizeof(char));
+    memcpy(h->protocol, "RFS\0", 4*sizeof(char));
     h->ctx = rfs->ctx;
     h->magic = rfs->magic;
     h->func_id = func_id;
@@ -45,6 +45,7 @@ int64_t rfs_open(const char *pathname, int flags)
     //open socket and send head/data
     int socket;
     socket = rfs_socket_connect("localhost", (int)soup->port);
+    rfs->socket = socket;
 
     if(write(socket, h, sizeof(phead_t))!=sizeof(phead_t))
       ABORT_ME("%s: Failed to send protocol header\n", __func__);
@@ -61,7 +62,6 @@ int64_t rfs_open(const char *pathname, int flags)
       ABORT_ME("%s: Failed to recv payload\n", __func__);
 
     rfs->ctx = odata->ctx;
-    rfs->socket = socket;
 
     fprintf(stderr, "%s(%s)=%ld\n", __func__, idata->pathname, rfs->ctx);
     soup_uri_free(soup);

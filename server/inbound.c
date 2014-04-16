@@ -8,6 +8,7 @@ int svr_inbound(cln_ctx_t *cln)
     fprintf(stderr, "%s\n", __func__);
 
     while(1) {
+
         if(cmd->flag & PCMD_MODE_DATA) {
             buf = cmd->data + cmd->offset;
             num = cmd->head.size - cmd->offset;
@@ -48,7 +49,10 @@ int svr_inbound(cln_ctx_t *cln)
                     fprintf(stderr, "%s:   RFS_OPEN()\n", __func__);
                     break;
                   case RFS_CLOSE:
-                    fprintf(stderr, "%s:   RFS_OPEN()\n", __func__);
+                    fprintf(stderr, "%s:   RFS_CLOSE()\n", __func__);
+                    break;
+                  case RFS_WRITE:
+                    fprintf(stderr, "%s:   RFS_WRITE()\n", __func__);
                     break;
                   default:
                     abort();

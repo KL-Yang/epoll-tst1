@@ -19,14 +19,18 @@ int rfs_close(int64_t rfs_handle)
       ABORT_ME("%s: Fail to send payload\n", __func__);
     free(idata);
 
+    ssize_t x;
     //get information of closed file
-    if(read(socket, h, sizeof(phead_t))!=sizeof(phead_t))
-      ABORT_ME("%s: Fail to recv protocol header\n", __func__);
+    if((x=read(socket, h, sizeof(phead_t)))!=sizeof(phead_t))
+      ABORT_ME("%s: Fail to recv protocol header x=%d\n", __func__, (int)x);
 
     rfs_close_ou_t *odata = calloc(h->size, 1);
     if(read(socket, odata, h->size)!=h->size)
       ABORT_ME("%s: Fail to recv payload\n", __func__);
 
+    fprintf(stderr, "%s: closed\n", __func__);
+
+    close(socket);
     ret = odata->ret;
     errno = odata->rerrno;
     free(odata);

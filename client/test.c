@@ -6,8 +6,8 @@ int main()
     char *buf="This is a hello Wrold!";
     char *uri="rfs://kyang@pt001:2048/home/kyang/test.dat";
 
-    fd = rfs_open(uri, O_RDWR | O_TRUNC | O_CREAT | S_IWUSR | S_IRUSR);
-    rfs_write(fd, buf, strlen(buf));
+    fd = rfs_open(uri, O_CREAT);
+    rfs_pwrite(fd, buf, strlen(buf), 0);
     rfs_close(fd);
 
     return 0;
