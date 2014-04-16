@@ -20,12 +20,12 @@ int svr_accept(svr_ctx_t *svr)
     struct epoll_event event;
 
     while (1) {
-        len = sizeof addr;
+        len = sizeof(addr);
         if((fd = accept (svr->socket, &addr, &len)) == -1) {
             if ((errno == EAGAIN) || (errno == EWOULDBLOCK))
                 break;  //has processed all incoming connection
             else {
-                perror ("accept");
+                fprintf(stderr, "%s: accept() failed %s\n", __func__, strerror(errno));
                 abort();
             }
         }
@@ -47,9 +47,10 @@ int svr_accept(svr_ctx_t *svr)
         fprintf(stderr, "%s: new cln@%p\n", __func__, cln);
 
         event.data.ptr = cln;
-        event.events = EPOLLIN | EPOLLET;
-        if((r = epoll_ctl(svr->efd, EPOLL_CTL_ADD, fd, &event)) == -1) {
-            perror ("epoll_ctl");
+        event.events = EPOLLIN | EPOLLRDHUP | EPOLLET;
+        r = epoll_ctl(svr->efd, EPOLL_CTL_ADD, fd, &event);
+        if(r == -1) {
+            fprintf(stderr, "%s: epoll_ctl failed %s\n", __func__, strerror(errno));
             abort ();
         }
     }

@@ -2,7 +2,6 @@
 
 svr_ctx_t * svr_ctx_init(const char *host, int port, int nthread)
 {
-    struct epoll_event svr_ev;
     svr_ctx_t *svr = calloc(1, sizeof(svr_ctx_t));
 
     pthread_spin_init(&svr->lock, PTHREAD_PROCESS_PRIVATE);
@@ -19,10 +18,13 @@ svr_ctx_t * svr_ctx_init(const char *host, int port, int nthread)
     }
     fprintf(stderr, "%s: epoll fd=%d svr@%p\n", __func__, svr->efd, svr);
 
-     //add listening event
+    int r;
+    struct epoll_event svr_ev;
+
     svr_ev.data.ptr = svr;
     svr_ev.events = EPOLLIN | EPOLLET;
-    if(epoll_ctl(svr->efd, EPOLL_CTL_ADD, svr->socket, &svr_ev) == -1) {
+    r = epoll_ctl(svr->efd, EPOLL_CTL_ADD, svr->socket, &svr_ev);
+    if(r == -1) {
         perror ("epoll_ctl add listen failed!");
         abort ();
     }
