@@ -10,6 +10,7 @@ typedef struct {
 
 int64_t rfs_open(const char *pathname, int flags);
 int64_t rfs_write(int64_t rfd, const void *buf, int64_t count);
+int64_t rfs_read(int64_t rfd, void *buff, int64_t count);
 int     rfs_close(int64_t rfh);
 ////////////////////////
 

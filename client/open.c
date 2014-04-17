@@ -62,6 +62,10 @@ int64_t rfs_open(const char *pathname, int flags)
       ABORT_ME("%s: Failed to recv payload\n", __func__);
 
     rfs->ctx = odata->ctx;
+    if(rfs->ctx==0) {
+        fprintf(stderr, "%s: failed %s\n", __func__, strerror(odata->rerrno));
+        abort();
+    }
 
     fprintf(stderr, "%s(%s)=%ld\n", __func__, idata->pathname, rfs->ctx);
     soup_uri_free(soup);
