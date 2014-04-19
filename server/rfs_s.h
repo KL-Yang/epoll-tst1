@@ -7,7 +7,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <fcntl.h>
-#include <uv.h>
+//#include <uv.h>
 #include <glib.h>
 
 #include <sys/epoll.h>
@@ -15,14 +15,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-#define SVR_BACKLOG         10
 #define SVR_MAX_EVENT       16
 #define SVR_MAX_CLIENT      128
-
-//svr_socket() -> flag
-#define SVR_CLIENT          (1<<0)      //dummy 
-#define SVR_SERVER          (1<<0)
-#define SVR_NONBLOCK        (1<<1)
 
 //protocol command
 #define PCMD_MODE_DATA      (1u<<0)     //send/recv data, other wise head
@@ -87,7 +81,6 @@ typedef struct {
 
 } lfd_ctx_t;
 
-void after_notify(uv_stream_t __attribute__ ((unused)) *handle, ssize_t nread, const uv_buf_t* buf);
 void server_dispatch(void *data, void *user_data);
 
 lfd_ctx_t * svr_rfs_open(rfs_open_in_t *in, void **ppou);
@@ -102,8 +95,6 @@ void svr_ctx_free(svr_ctx_t *svr);
 
 cln_ctx_t * svr_new_client(int socket, svr_ctx_t *svr);
 
-int svr_socket(const char *host, int port, int flag);
-int svr_make_non_block(int fd);
 int svr_accept(svr_ctx_t *svr);
 int svr_inbound(cln_ctx_t *cln);
 int svr_outbound(cln_ctx_t *cln);

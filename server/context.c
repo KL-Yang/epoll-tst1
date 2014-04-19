@@ -9,7 +9,7 @@ svr_ctx_t * svr_ctx_init(const char *host, int port, int nthread)
     svr->event = calloc (SVR_MAX_EVENT, sizeof(struct epoll_event));
     
     //create listening socket
-    svr->socket = svr_socket(host, port, SVR_SERVER | SVR_NONBLOCK);
+    svr->socket = rfs_sock_connect(host, port, RFS_SOCK_SERVER | RFS_SOCK_NONBLOCK);
 
     //create epoll
     if((svr->efd = epoll_create (SVR_MAX_EVENT)) == -1) {
@@ -22,7 +22,7 @@ svr_ctx_t * svr_ctx_init(const char *host, int port, int nthread)
     struct epoll_event svr_ev;
 
     svr_ev.data.ptr = svr;
-    svr_ev.events = EPOLLIN | EPOLLET;
+    svr_ev.events = EPOLLIN | EPOLLET | EPOLLRDHUP;
     r = epoll_ctl(svr->efd, EPOLL_CTL_ADD, svr->socket, &svr_ev);
     if(r == -1) {
         perror ("epoll_ctl add listen failed!");

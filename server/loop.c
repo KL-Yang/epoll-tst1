@@ -22,6 +22,10 @@ void svr_run_loop(svr_ctx_t *svr)
               svr_inbound(evs[i].data.ptr);
             else if(evs[i].events & EPOLLOUT)
               svr_outbound(evs[i].data.ptr);
+            else if(evs[i].events & EPOLLRDHUP) {
+                fprintf (stderr, "epoll error EPOLLRDHUP\n");
+                abort();
+            }
             else  {
                 fprintf (stderr, "epoll error\n");
                 abort();

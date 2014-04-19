@@ -39,7 +39,7 @@ void server_dispatch(void *data, void *user_data)
         pthread_spin_unlock(&svr->lock);
         break;
 
-      case RFS_STAT:
+      case RFS_FUNC_STAT:
         break;
 
       case RFS_SEEK:

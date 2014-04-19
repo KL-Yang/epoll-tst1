@@ -39,7 +39,7 @@ int svr_accept(svr_ctx_t *svr)
 
         /* Make the incoming socket non-blocking and add it to the
            list of fds to monitor. */
-        if((r = svr_make_non_block(fd)) == -1)
+        if((r = rfs_sock_nonblock(fd)) == -1)
           abort ();
 
         cln_ctx_t *cln = svr_new_client(fd, svr);
