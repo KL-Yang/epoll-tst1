@@ -1,6 +1,6 @@
-#include "rfs_s.h"
+#include "rfs_i.h"
 
-int svr_socket(const char *host, int port, int flag)
+int rfs_sock_connect(const char *host, int port, int flag)
 {
     int fd, try;
     struct hostent *hent;
@@ -19,12 +19,12 @@ int svr_socket(const char *host, int port, int flag)
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);      // Set port number
  
-    if(flag & SVR_SERVER) {
+    if(flag & RFS_SOCK_SERVER) {
         if(bind(fd, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
             perror("ERROR on binding");
             exit(1);
         }
-        if(listen(fd, SVR_BACKLOG) < 0) {
+        if(listen(fd, RFS_SOCK_BACKLOG) < 0) {
             perror("ERROR on listening");
             exit(1);
         }
@@ -37,14 +37,14 @@ int svr_socket(const char *host, int port, int flag)
         }
     }
 
-    if(flag & SVR_NONBLOCK)
-      svr_make_non_block(fd);
+    if(flag & RFS_SOCK_NONBLOCK)
+      rfs_sock_nonblock(fd);
 
     fprintf(stderr, "%s: fd=%d\n", __func__, fd);
     return fd;
 }
 
-int svr_make_non_block(int fd)
+int rfs_sock_nonblock(int fd)
 {
     int r, o_flag;
     if((o_flag = fcntl (fd, F_GETFL, 0))==-1) {

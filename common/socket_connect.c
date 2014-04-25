@@ -1,4 +1,4 @@
-#include "rfs_c.h"
+#include "rfs_i.h"
 
 /**
  * connet to remote server and return socket fd.
@@ -6,7 +6,7 @@
  * */
 int rfs_socket_connect(const char *host, int port)
 {
-    int fd;
+    int fd, ntry=1;
     struct hostent *hent;
     struct sockaddr_in addr;
 
@@ -19,9 +19,10 @@ int rfs_socket_connect(const char *host, int port)
     memcpy((char*)&addr.sin_addr, hent->h_addr, hent->h_length);
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);      // Set port number
-    if(connect(fd, (struct sockaddr*)&addr, sizeof(addr))<0) {
-        fprintf(stderr, "\n Error : Connect Failed \n");
-        return 1;
+    
+    while(connect(fd, (struct sockaddr*)&addr, sizeof(addr))<0 && ntry<10) {
+        fprintf(stderr, "** try[%d] Connect to %s Failed!\n", ntry, host);
+        ntry++;
     }
     return fd;
 }

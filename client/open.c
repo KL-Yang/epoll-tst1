@@ -10,11 +10,13 @@ rfs_protocol_new_head(int func_id, rfs_t *rfs)
     phead_t *h;
     h = calloc(1, sizeof(phead_t));
     memcpy(h->protocol, "RFS\0", 4*sizeof(char));
-    h->ctx = rfs->ctx;
-    h->magic = rfs->magic;
     h->func_id = func_id;
-    h->sequence = rfs->sequence;
-    rfs->sequence++;
+    if(rfs!=NULL) {
+        h->ctx = rfs->ctx;
+        h->magic = rfs->magic;
+        h->sequence = rfs->sequence;
+        rfs->sequence++;
+    }
     return h;
 }
 
