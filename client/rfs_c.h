@@ -8,12 +8,15 @@ typedef struct {
     int         sequence;
 } lib_ctx_t;
 
+#define RFS_LOCAL           1   
+
 typedef struct {
     int64_t     ctx;        /* remote file context pointer */
+    int         fd;         // remote or local file descriptor!
     int         magic;      /* magic associate with fd */
     int         sequence;   /* call count */
     int         flag;
-    int         socket;
+    int         socket;     //TODO: remove!
     lib_ctx_t  *loc;        /* local context */
 } rfs_t;    //local
 
